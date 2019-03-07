@@ -3836,6 +3836,148 @@ func TestSchemaMap_InternalValidate(t *testing.T) {
 			},
 			false,
 		},
+
+		"ConfigModeBlock with Elem *Resource": {
+			map[string]*Schema{
+				"block": &Schema{
+					Type:       TypeList,
+					ConfigMode: SchemaConfigModeBlock,
+					Optional:   true,
+					Elem:       &Resource{},
+				},
+			},
+			false,
+		},
+
+		"ConfigModeBlock Computed with Elem *Resource": {
+			map[string]*Schema{
+				"block": &Schema{
+					Type:       TypeList,
+					ConfigMode: SchemaConfigModeBlock,
+					Computed:   true,
+					Elem:       &Resource{},
+				},
+			},
+			true, // ConfigMode of block cannot be used for computed schema
+		},
+
+		"ConfigModeBlock with Elem *Schema": {
+			map[string]*Schema{
+				"block": &Schema{
+					Type:       TypeList,
+					ConfigMode: SchemaConfigModeBlock,
+					Optional:   true,
+					Elem: &Schema{
+						Type: TypeString,
+					},
+				},
+			},
+			true,
+		},
+
+		"ConfigModeBlock with no Elem": {
+			map[string]*Schema{
+				"block": &Schema{
+					Type:       TypeString,
+					ConfigMode: SchemaConfigModeBlock,
+					Optional:   true,
+				},
+			},
+			true,
+		},
+
+		"ConfigModeBlock inside ConfigModeAttr": {
+			map[string]*Schema{
+				"block": &Schema{
+					Type:       TypeList,
+					ConfigMode: SchemaConfigModeAttr,
+					Optional:   true,
+					Elem: &Resource{
+						Schema: map[string]*Schema{
+							"sub": &Schema{
+								Type:       TypeList,
+								ConfigMode: SchemaConfigModeBlock,
+								Elem:       &Resource{},
+							},
+						},
+					},
+				},
+			},
+			true, // ConfigMode of block cannot be used in child of schema with ConfigMode of attribute
+		},
+
+		"ConfigModeAuto with *Resource inside ConfigModeAttr": {
+			map[string]*Schema{
+				"block": &Schema{
+					Type:       TypeList,
+					ConfigMode: SchemaConfigModeAttr,
+					Optional:   true,
+					Elem: &Resource{
+						Schema: map[string]*Schema{
+							"sub": &Schema{
+								Type: TypeList,
+								Elem: &Resource{},
+							},
+						},
+					},
+				},
+			},
+			true, // in *schema.Resource with ConfigMode of attribute, so must also have ConfigMode of attribute
+		},
+
+		"AsSingle with list block": {
+			map[string]*Schema{
+				"block": &Schema{
+					Type:     TypeList,
+					AsSingle: true,
+					MaxItems: 1,
+					Optional: true,
+					Elem:     &Resource{},
+				},
+			},
+			false,
+		},
+
+		"AsSingle with list attribute": {
+			map[string]*Schema{
+				"block": &Schema{
+					Type:     TypeList,
+					AsSingle: true,
+					MaxItems: 1,
+					Optional: true,
+					Elem: &Schema{
+						Type: TypeString,
+					},
+				},
+			},
+			false,
+		},
+
+		"AsSingle with list block without MaxItems": {
+			map[string]*Schema{
+				"block": &Schema{
+					Type:     TypeList,
+					AsSingle: true,
+					Optional: true,
+					Elem:     &Resource{},
+				},
+			},
+			true, // MaxItems must be 1 when AsSingle is set
+		},
+
+		"AsSingle with list attribute without MaxItems": {
+			map[string]*Schema{
+				"block": &Schema{
+					Type:     TypeList,
+					AsSingle: true,
+					Optional: true,
+					Elem: &Schema{
+						Type: TypeString,
+					},
+				},
+			},
+			true, // MaxItems must be 1 when AsSingle is set
+		},
 	}
 
 	for tn, tc := range cases {
