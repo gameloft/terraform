@@ -19,7 +19,7 @@ same limitations as the main backend configuration. You can use any number of
 `remote_state` data sources with differently configured backends, and you can
 use interpolations when configuring them.
 
-## Example Usage
+## Example Usage (>= 0.12)
 
 ```hcl
 data "terraform_remote_state" "vpc" {
@@ -32,6 +32,22 @@ data "terraform_remote_state" "vpc" {
 resource "aws_instance" "foo" {
   # ...
   subnet_id = "${data.terraform_remote_state.vpc.outputs.subnet_id}"
+}
+```
+
+## Example Usage (<= 0.11)
+
+```hcl
+data "terraform_remote_state" "vpc" {
+  backend = "atlas"
+  config {
+    name = "hashicorp/vpc-prod"
+  }
+}
+
+resource "aws_instance" "foo" {
+  # ...
+  subnet_id = "${data.terraform_remote_state.vpc.subnet_id}"
 }
 ```
 
@@ -54,7 +70,9 @@ The following arguments are supported:
 
 In addition to the above, the following attributes are exported:
 
-* `outputs` - Each root-level [output](/docs/configuration/outputs.html)
+* (v0.12+) `outputs` - Each root-level [output](/docs/configuration/outputs.html)
+  in the remote state appears as a top level attribute on the data source.
+* (<= v0.11) `<OUTPUT NAME>` - Each root-level [output](/docs/configuration/outputs.html)
   in the remote state appears as a top level attribute on the data source.
 
 ## Root Outputs Only
