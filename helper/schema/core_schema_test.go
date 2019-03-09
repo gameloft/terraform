@@ -296,21 +296,30 @@ func TestSchemaMapCoreConfigSchema(t *testing.T) {
 					MinItems: 1,
 					MaxItems: 1,
 				},
+				"single": {
+					Type:     TypeList,
+					AsSingle: true,
+					Computed: true,
+					Elem: &Resource{
+						Schema: map[string]*Schema{},
+					},
+					MinItems: 1,
+					MaxItems: 1,
+				},
 			},
 			testResource(&configschema.Block{
-				Attributes: map[string]*configschema.Attribute{},
-				BlockTypes: map[string]*configschema.NestedBlock{
+				Attributes: map[string]*configschema.Attribute{
 					"list": {
-						Nesting:  configschema.NestingList,
-						Block:    configschema.Block{},
-						MinItems: 0,
-						MaxItems: 0,
+						Type:     cty.List(cty.EmptyObject),
+						Computed: true,
 					},
 					"set": {
-						Nesting:  configschema.NestingSet,
-						Block:    configschema.Block{},
-						MinItems: 0,
-						MaxItems: 0,
+						Type:     cty.Set(cty.EmptyObject),
+						Computed: true,
+					},
+					"single": {
+						Type:     cty.EmptyObject,
+						Computed: true,
 					},
 				},
 			}),
